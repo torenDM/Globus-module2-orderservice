@@ -1,6 +1,5 @@
 package org.example;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,8 +13,7 @@ Lombok использовать нельзя, все писать руками.
  */
 public class OrderService {
 
-
-    private final List<Order> orders = new ArrayList<>();
+    private final OrderRepository repository = new InMemoryOrderRepository();
     private final BasicOrderValidation validator = new BasicOrderValidation();
     private final ConsoleReceiptPrinter receiptPrinter = new ConsoleReceiptPrinter();
 
@@ -59,7 +57,7 @@ public class OrderService {
         receiptPrinter.print(order, discount, commission, finalAmount);
 
         // --- "сохранение" заказа  ---
-        orders.add(order);
+        repository.save(order);
 
         return finalAmount;
     }
