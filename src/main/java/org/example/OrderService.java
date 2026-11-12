@@ -16,16 +16,11 @@ public class OrderService {
 
 
     private final List<Order> orders = new ArrayList<>();
+    private final BasicOrderValidation validator = new BasicOrderValidation();
 
     public double processOrder(Order order) {
 
-        // --- валидация ---
-        if (order.getAmount() <= 0) {
-            throw new RuntimeException("Order amount must be positive");
-        }
-        if (order.getItems() == null || order.getItems().isEmpty()) {
-            throw new RuntimeException("Order must contain at least one item");
-        }
+        validator.validate(order);
 
         // --- расчёт скидки по типу клиента ---
         double discount = 0.0;
