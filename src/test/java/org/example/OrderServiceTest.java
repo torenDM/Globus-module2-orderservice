@@ -22,7 +22,8 @@ public class OrderServiceTest {
     }
 
     public static void main(String[] args) {
-        OrderService service = new OrderService();
+        RecordingOrderRepository repository = new RecordingOrderRepository();
+        OrderService service = new OrderService(repository);
 
         Order test1 = new Order("test-1", "VIP", "CARD", List.of("Laptop", "Mouse"), 1000.0);
         Order test2 = new Order("test-2", "PREMIUM", "TRANSFER", List.of("Book"), 1000.0);
@@ -32,6 +33,11 @@ public class OrderServiceTest {
         Order test6 = new Order("test-6", "VIP", "CARD", List.of(), 1000.0);
         Order test7 = new Order("test-7", "VIP", "CARD", null, 1000.0);
         Order test8 = new Order("test-8", "VIP", "CARD", List.of(), 0.0);
+
+        if (repository.getSaveCount() != 0 || repository.getLastSavedOrder() != null) {
+            throw new AssertionError("Обнаружено несоответствие количества сохраненных заказов с ожидаемым, либо не совпадает последний заказ\n" +
+                    "Ожидалось: " + 0 + "," + null + " | Получено: " + repository.getSaveCount() + "," + repository.getLastSavedOrder());
+        }
 
         double processOrderTest1 = service.processOrder(test1);
         double processOrderTest2 = service.processOrder(test2);
@@ -52,11 +58,21 @@ public class OrderServiceTest {
                     "Ожидалось: " + 1000.0 + " | Получено: " + processOrderTest3);
         }
 
+        if (repository.getSaveCount() != 3 || repository.getLastSavedOrder() != test3) {
+            throw new AssertionError("Обнаружено несоответствие количества сохраненных заказов с ожидаемым, либо не совпадает последний заказ\n" +
+                    "Ожидалось: " + 3 + "," + test3 + " | Получено: " + repository.getSaveCount() + "," + repository.getLastSavedOrder());
+        }
+
         expectFailure(service, test4, "Order amount must be positive");
         expectFailure(service, test5, "Order amount must be positive");
         expectFailure(service, test6, "Order must contain at least one item");
         expectFailure(service, test7, "Order must contain at least one item");
         expectFailure(service, test8 , "Order amount must be positive");
+
+        if (repository.getSaveCount() != 3 || repository.getLastSavedOrder() != test3) {
+            throw new AssertionError("Обнаружено несоответствие количества сохраненных заказов с ожидаемым, либо не совпадает последний заказ\n" +
+                    "Ожидалось: " + 3 + "," + test3 + " | Получено: " + repository.getSaveCount() + "," + repository.getLastSavedOrder());
+        }
 
         System.out.println("Все проверки успешно пройдены");
     }

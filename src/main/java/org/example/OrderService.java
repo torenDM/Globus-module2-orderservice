@@ -13,7 +13,7 @@ Lombok использовать нельзя, все писать руками.
  */
 public class OrderService {
 
-    private final OrderRepository repository = new InMemoryOrderRepository();
+    private final OrderRepository repository;
     private final BasicOrderValidation validator = new BasicOrderValidation();
     private final ConsoleReceiptPrinter receiptPrinter = new ConsoleReceiptPrinter();
 
@@ -63,7 +63,8 @@ public class OrderService {
     }
 
     public static void main(String[] args) {
-        OrderService service = new OrderService();
+        OrderRepository repository = new InMemoryOrderRepository();
+        OrderService service = new OrderService(repository);
 
         Order order1 = new Order("1", "VIP", "CARD", List.of("Laptop", "Mouse"), 1000.0);
         Order order2 = new Order("2", "REGULAR", "CASH", List.of("Book"), 20.0);
@@ -71,5 +72,10 @@ public class OrderService {
         System.out.println("Final amount 1: " + service.processOrder(order1));
         System.out.println("Final amount 2: " + service.processOrder(order2));
     }
+
+    public OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
 }
+
 
