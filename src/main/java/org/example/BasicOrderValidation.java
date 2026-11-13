@@ -1,7 +1,8 @@
 package org.example;
 
-public class BasicOrderValidation {
+public class BasicOrderValidation implements OrderValidator {
 
+    @Override
     public void validate(Order order) {
 
         // --- валидация ---

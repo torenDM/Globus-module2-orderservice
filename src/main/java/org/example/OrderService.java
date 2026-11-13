@@ -1,5 +1,12 @@
 package org.example;
 
+import org.example.commission.CommissionStrategy;
+import org.example.discount.DiscountStrategy;
+import org.example.factory.CommissionStrategyFactory;
+import org.example.factory.DefaultCommissionStrategyFactory;
+import org.example.factory.DefaultDiscountStrategyFactory;
+import org.example.factory.DiscountStrategyFactory;
+
 import java.util.List;
 
 /**
@@ -14,8 +21,10 @@ Lombok использовать нельзя, все писать руками.
 public class OrderService {
 
     private final OrderRepository repository;
-    private final BasicOrderValidation validator = new BasicOrderValidation();
-    private final ConsoleReceiptPrinter receiptPrinter = new ConsoleReceiptPrinter();
+    private final OrderValidator validator;
+    private final ReceiptPrinter receiptPrinter;
+    private final CommissionStrategyFactory commissionFactory;
+    private final DiscountStrategyFactory discountFactory;
 
     public double processOrder(Order order) {
 
@@ -23,32 +32,12 @@ public class OrderService {
         validator.validate(order);
 
         // --- расчёт скидки по типу клиента ---
-        double discount = 0.0;
-        String customerType = order.getCustomerType();
-        if (customerType.equals("REGULAR")) {
-            discount = 0.0;
-        } else if (customerType.equals("VIP")) {
-            discount = order.getAmount() * 0.05;
-        } else if (customerType.equals("PREMIUM")) {
-            discount = order.getAmount() * 0.10;
-        } else {
-            // TODO: добавить новый тип клиента — дописать ещё один else if
-            throw new RuntimeException("Unknown customer type: " + customerType);
-        }
+        DiscountStrategy discountStrategy = discountFactory.createStrategy(order.getCustomerType());
+        double discount = discountStrategy.calculateDiscount(order.getAmount());
 
         // --- расчёт комиссии по способу оплаты ---
-        double commission = 0.0;
-        String paymentType = order.getPaymentType();
-        if (paymentType.equals("CARD")) {
-            commission = order.getAmount() * 0.02;
-        } else if (paymentType.equals("CASH")) {
-            commission = 0.0;
-        } else if (paymentType.equals("TRANSFER")) {
-            commission = order.getAmount() * 0.01;
-        } else {
-            // TODO: добавить новый способ оплаты — дописать ещё один else if
-            throw new RuntimeException("Unknown payment type: " + paymentType);
-        }
+        CommissionStrategy commissionStrategy = commissionFactory.createStrategy(order.getPaymentType());
+        double commission = commissionStrategy.calculateCommission(order.getAmount());
 
         // --- итоговая сумма ---
         double finalAmount = order.getAmount() - discount + commission;
@@ -64,7 +53,7 @@ public class OrderService {
 
     public static void main(String[] args) {
         OrderRepository repository = new InMemoryOrderRepository();
-        OrderService service = new OrderService(repository);
+        OrderService service = new OrderService(repository, new DefaultDiscountStrategyFactory(), new DefaultCommissionStrategyFactory(), new BasicOrderValidation(), new ConsoleReceiptPrinter());
 
         Order order1 = new Order("1", "VIP", "CARD", List.of("Laptop", "Mouse"), 1000.0);
         Order order2 = new Order("2", "REGULAR", "CASH", List.of("Book"), 20.0);
@@ -73,8 +62,15 @@ public class OrderService {
         System.out.println("Final amount 2: " + service.processOrder(order2));
     }
 
-    public OrderService(OrderRepository repository) {
+    public OrderService(OrderRepository repository, DiscountStrategyFactory discountFactory, CommissionStrategyFactory commissionFactory,
+                        OrderValidator validator, ReceiptPrinter receiptPrinter) {
+
         this.repository = repository;
+        this.discountFactory = discountFactory;
+        this.commissionFactory = commissionFactory;
+        this.validator = validator;
+        this.receiptPrinter = receiptPrinter;
+
     }
 }
 

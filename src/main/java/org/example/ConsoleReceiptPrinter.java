@@ -1,7 +1,8 @@
 package org.example;
 
-public class ConsoleReceiptPrinter {
+public class ConsoleReceiptPrinter implements ReceiptPrinter {
 
+    @Override
     public void print(Order order, double discount, double commission, double finalAmount) {
 
         // --- формирование чека ---

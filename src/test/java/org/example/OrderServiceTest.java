@@ -1,5 +1,8 @@
 package org.example;
 
+import org.example.factory.DefaultCommissionStrategyFactory;
+import org.example.factory.DefaultDiscountStrategyFactory;
+
 import java.util.List;
 
 public class OrderServiceTest {
@@ -23,8 +26,8 @@ public class OrderServiceTest {
 
     public static void main(String[] args) {
         RecordingOrderRepository repository = new RecordingOrderRepository();
-        OrderService service = new OrderService(repository);
-
+        OrderService service = new OrderService(repository, new DefaultDiscountStrategyFactory(), new DefaultCommissionStrategyFactory(), new BasicOrderValidation(), new ConsoleReceiptPrinter());
+        
         Order test1 = new Order("test-1", "VIP", "CARD", List.of("Laptop", "Mouse"), 1000.0);
         Order test2 = new Order("test-2", "PREMIUM", "TRANSFER", List.of("Book"), 1000.0);
         Order test3 = new Order("test-3", "REGULAR", "CASH", List.of("iPhone"), 1000.0);
