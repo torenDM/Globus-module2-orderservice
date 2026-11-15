@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    enabled = false
+}
+
+tasks.register('runOrderServiceTests', JavaExec) {
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'org.example.OrderServiceTest'
+
+    systemProperty 'file.encoding', 'UTF-8'
+    systemProperty 'stdout.encoding', 'UTF-8'
+    systemProperty 'stderr.encoding', 'UTF-8'
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('runOrderServiceTests')
+}
+
+def buildInfoFile = layout.buildDirectory.file('build-info.txt')
+def buildVersion = version.toString()
+
+tasks.register('generateBuildInfo') {
+    doLast {
+        def outputFile = buildInfoFile.get().asFile
+        outputFile.parentFile.mkdirs()
+        def localDate = java.time.LocalDate.now()
+        outputFile.setText("Version: ${buildVersion}\nBuild date: ${localDate}\n", 'UTF-8')
+    }
+}
+
+tasks.named('build') {
+    dependsOn tasks.named('generateBuildInfo')
+}
